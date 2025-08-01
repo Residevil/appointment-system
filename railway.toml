@@ -1,0 +1,5 @@
+[project]
+name = "appointment-system"
+
+[services.backend]
+rootDirectory = "backend"

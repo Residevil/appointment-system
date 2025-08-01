@@ -5,9 +5,10 @@ import mongoose from 'mongoose';
 import helmet from 'helmet';
 import appointmentRoutes from './routes/appointmentRoutes';
 
-// Load environment variables
-dotenv.config();
-
+// Conditionally load environment variables
+if (process.env.NODE_ENV !== 'production') {
+    require('dotenv').config();
+}
 // Create Express app
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -23,11 +24,14 @@ const {
 } = process.env;
 
 // Validate environment variables
-if (!MONGO_USER || !MONGO_PASSWORD || !MONGO_CLUSTER_URL) {
-    console.error('❌ Missing required MongoDB environment variables');
-    console.error('Please check your .env file for MONGO_USER, MONGO_PASSWORD, and MONGO_CLUSTER_URL');
+const required = ['MONGO_USER', 'MONGO_PASSWORD', 'MONGO_CLUSTER_URL'];
+required.forEach(key => {
+  if (!process.env[key]) {
+    console.error(`❌ Missing required environment variable: ${key}`);
     process.exit(1);
-}
+  }
+});
+
 
 // Build MongoDB URI
 const mongoUri = `mongodb+srv://${MONGO_USER}:${MONGO_PASSWORD}@${MONGO_CLUSTER_URL}/${MONGO_DB_NAME}?retryWrites=true&w=majority`;
