@@ -56,8 +56,8 @@ if (isProduction) {
 // Configure CORS based on environment
 const corsOptions = {
     origin: isProduction 
-        ? process.env.FRONTEND_URL || process.env.CORS_ORIGIN || 'https://your-frontend-domain.com'
-        : process.env.FRONTEND_URL || 'http://localhost:3000',
+        ? 'https://appointment-system-production-9770.up.railway.app'
+        : 'http://localhost:3000',
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
@@ -88,6 +88,11 @@ app.get('/api/health', (req, res) => {
         environment: NODE_ENV
     });
 });
+
+app.use((req, res, next) => {
+    console.log('Incoming Origin:', req.headers.origin);
+    next();
+  });  
 
 // API routes
 app.use('/api/appointments', appointmentRoutes);

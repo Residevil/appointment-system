@@ -11,6 +11,7 @@ yarn-error.log*
 .env.test.local
 .env.production.local
 
+
 # Build outputs
 dist/
 build/
@@ -83,3 +84,4 @@ jspm_packages/
 
 # TernJS port file
 .tern-port 
+venv/
