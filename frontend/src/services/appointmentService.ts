@@ -11,7 +11,7 @@ import {
   AppointmentCancelResponse
 } from '../types/appointment';
 
-const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:5000/api/appointments';
+const API_BASE = process.env.NODE_ENV === 'production' ? process.env.REACT_APP_API_BASE : 'http://localhost:5000/api/appointments';
 
 // const dbName = 'appointmentServiceDB';
 // const collectionName = 'appointments';

@@ -50,6 +50,8 @@ const formatAppointmentDate = (date: Date): string => {
 // Email template for appointment confirmation
 const generateConfirmationEmail = (appointment: IAppointment) => {
   const appointmentDate = formatAppointmentDate(appointment.appointmentDate);
+  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+  const managementUrl = `${frontendUrl}/manage/${appointment.bookingId}`;
 
   return {
     subject: `Appointment Confirmed - Booking ID: ${appointment.bookingId}`,
@@ -73,11 +75,18 @@ const generateConfirmationEmail = (appointment: IAppointment) => {
             ${appointment.notes ? `<p><strong>Notes:</strong> ${appointment.notes}</p>` : ''}
           </div>
           
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${managementUrl}" 
+               style="background-color: #2196F3; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">
+              Click here to manage your booking
+            </a>
+          </div>
+          
           <p>Please arrive 5 minutes before your scheduled time.</p>
           
           <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
             <p style="color: #666; font-size: 14px;">
-              If you need to reschedule or cancel your appointment, please contact us as soon as possible.
+              Need to reschedule or cancel? Use the link above to manage your appointment online, or contact us directly.
             </p>
             <p style="color: #666; font-size: 14px;">
               Thank you for choosing our service!
@@ -100,9 +109,11 @@ const generateConfirmationEmail = (appointment: IAppointment) => {
       - Duration: ${appointment.duration} minutes
       ${appointment.notes ? `- Notes: ${appointment.notes}` : ''}
       
+      Manage your booking: ${managementUrl}
+      
       Please arrive 5 minutes before your scheduled time.
       
-      If you need to reschedule or cancel your appointment, please contact us as soon as possible.
+      Need to reschedule or cancel? Use the link above to manage your appointment online, or contact us directly.
       
       Thank you for choosing our service!
     `

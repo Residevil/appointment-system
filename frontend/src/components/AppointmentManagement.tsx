@@ -308,7 +308,7 @@ const AppointmentManagement: React.FC = () => {
                 ) : (
                   <Grid container spacing={1}>
                     {availableSlots.map(slot => (
-                      <Grid item key={slot}>
+                      <Grid>
                         <Button
                           variant={updateForm.appointmentTime === slot ? 'contained' : 'outlined'}
                           size="small"
