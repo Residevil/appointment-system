@@ -33,11 +33,22 @@ export interface AppointmentCreateResponse {
   appointment: Appointment;
 } 
 
-export interface AppointmentCancelRequest {
-  customerName: string;
-  customerEmail: string;
-  appointment: Appointment;
+export interface AppointmentUpdateRequest {
+  customerName?: string;
+  customerEmail?: string;
+  appointmentDate?: string;
+  appointmentTime?: string;
+  duration?: number;
   notes?: string;
+}
+
+export interface AppointmentUpdateResponse {
+  message: string;
+  appointment: Appointment;
+}
+
+export interface AppointmentCancelRequest {
+  reason?: string;
 }
 
 export interface AppointmentCancelResponse {
