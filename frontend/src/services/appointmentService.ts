@@ -1,8 +1,17 @@
 import axios from 'axios';
 // import { client } from '../../../backend/src/config/mongo';
-import { Appointment, AvailableSlotsResponse, AppointmentCreateRequest, AppointmentCreateResponse } from '../types/appointment';
+import { 
+  Appointment, 
+  AvailableSlotsResponse, 
+  AppointmentCreateRequest, 
+  AppointmentCreateResponse,
+  AppointmentUpdateRequest,
+  AppointmentUpdateResponse,
+  AppointmentCancelRequest,
+  AppointmentCancelResponse
+} from '../types/appointment';
 
-const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:5000/api/appointments';
+const API_BASE = process.env.NODE_ENV === 'production' ? process.env.REACT_APP_API_BASE : 'http://localhost:5000/api/appointments';
 
 // const dbName = 'appointmentServiceDB';
 // const collectionName = 'appointments';
@@ -22,6 +31,16 @@ export const getAppointmentByBookingId = async (bookingId: string) => {
   const res = await axios.get<{ appointment: Appointment }>(`${API_BASE}/booking/${bookingId}`);
   return res.data.appointment;
 }; 
+
+export const updateAppointment = async (bookingId: string, data: AppointmentUpdateRequest) => {
+  const res = await axios.put<AppointmentUpdateResponse>(`${API_BASE}/update/${bookingId}`, data);
+  return res.data;
+};
+
+export const cancelAppointment = async (bookingId: string, data: AppointmentCancelRequest = {}) => {
+  const res = await axios.put<AppointmentCancelResponse>(`${API_BASE}/cancel/${bookingId}`, data);
+  return res.data;
+};
 
 // // This function demonstrates basic CRUD on an 'appointments' collection
 // export async function runAppointmentTemplate() {

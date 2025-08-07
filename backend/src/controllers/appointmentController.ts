@@ -210,4 +210,122 @@ export const getAllAppointments = async (req: Request, res: Response) => {
     console.error('Error getting appointments:', error);
     res.status(500).json({ error: 'Failed to get appointments' });
   }
+};
+
+// Update an existing appointment
+export const updateAppointment = async (req: Request, res: Response) => {
+  try {
+    const { bookingId } = req.params;
+    const { customerName, customerEmail, appointmentDate, appointmentTime, duration, notes } = req.body;
+
+    // Find the existing appointment
+    const existingAppointment = await Appointment.findOne({ bookingId });
+    
+    if (!existingAppointment) {
+      return res.status(404).json({ error: 'Appointment not found' });
+    }
+
+    // Check if appointment is already cancelled
+    if (existingAppointment.status === 'cancelled') {
+      return res.status(400).json({ error: 'Cannot update a cancelled appointment' });
+    }
+
+    // Prepare update data
+    const updateData: any = {};
+    
+    if (customerName) updateData.customerName = customerName;
+    if (customerEmail) updateData.customerEmail = customerEmail;
+    if (duration) updateData.duration = duration;
+    if (notes !== undefined) updateData.notes = notes;
+
+    // Handle date and time updates with validation
+    if (appointmentDate || appointmentTime) {
+      const newDate = appointmentDate ? createLocalDate(appointmentDate) : existingAppointment.appointmentDate;
+      const newTime = appointmentTime || existingAppointment.appointmentTime;
+      const tomorrow = getTomorrow();
+
+      // Check if the new date is in the past
+      if (newDate < tomorrow) {
+        return res.status(400).json({ 
+          error: 'Cannot schedule appointments for today or past dates. Please select a future date.' 
+        });
+      }
+
+      // Check if the new slot is available (only if date or time is changing)
+      if (appointmentDate || appointmentTime) {
+        const conflictingAppointment = await Appointment.findOne({
+          appointmentDate: newDate,
+          appointmentTime: newTime,
+          status: { $ne: 'cancelled' },
+          bookingId: { $ne: bookingId } // Exclude current appointment
+        });
+
+        if (conflictingAppointment) {
+          return res.status(409).json({ error: 'This time slot is already booked' });
+        }
+      }
+
+      if (appointmentDate) updateData.appointmentDate = newDate;
+      if (appointmentTime) updateData.appointmentTime = appointmentTime;
+    }
+
+    // Update the appointment
+    const updatedAppointment = await Appointment.findOneAndUpdate(
+      { bookingId },
+      updateData,
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedAppointment) {
+      return res.status(404).json({ error: 'Failed to update appointment' });
+    }
+
+    res.json({
+      message: 'Appointment updated successfully',
+      appointment: {
+        ...updatedAppointment.toObject(),
+        appointmentDate: formatDateForResponse(updatedAppointment.appointmentDate)
+      }
+    });
+
+  } catch (error) {
+    console.error('Error updating appointment:', error);
+    res.status(500).json({ error: 'Failed to update appointment' });
+  }
+};
+
+// Cancel an existing appointment
+export const cancelAppointment = async (req: Request, res: Response) => {
+  try {
+    const { bookingId } = req.params;
+    const { reason } = req.body;
+
+    // Find and update the appointment status to cancelled
+    const cancelledAppointment = await Appointment.findOneAndUpdate(
+      { bookingId, status: { $ne: 'cancelled' } },
+      { 
+        status: 'cancelled',
+        notes: reason ? `Cancelled: ${reason}` : 'Cancelled by user'
+      },
+      { new: true, runValidators: true }
+    );
+
+    if (!cancelledAppointment) {
+      return res.status(404).json({ 
+        error: 'Appointment not found or already cancelled' 
+      });
+    }
+
+    res.json({
+      message: 'Appointment cancelled successfully',
+      appointment: {
+        ...cancelledAppointment.toObject(),
+        appointmentDate: formatDateForResponse(cancelledAppointment.appointmentDate)
+      }
+    });
+
+  } catch (error) {
+    console.error('Error cancelling appointment:', error);
+    res.status(500).json({ error: 'Failed to cancel appointment' });
+  }
 }; 
