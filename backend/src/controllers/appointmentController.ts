@@ -294,33 +294,49 @@ export const updateAppointment = async (req: Request, res: Response) => {
   }
 };
 
-// Cancel an existing appointment
+// Cancel an existing appointment (with validation)
 export const cancelAppointment = async (req: Request, res: Response) => {
   try {
     const { bookingId } = req.params;
     const { reason } = req.body;
 
-    // Find and update the appointment status to cancelled
-    const cancelledAppointment = await Appointment.findOneAndUpdate(
-      { bookingId, status: { $ne: 'cancelled' } },
-      { 
-        status: 'cancelled',
-        notes: reason ? `Cancelled: ${reason}` : 'Cancelled by user'
-      },
-      { new: true, runValidators: true }
-    );
-
-    if (!cancelledAppointment) {
-      return res.status(404).json({ 
-        error: 'Appointment not found or already cancelled' 
-      });
+    // Validate bookingId
+    if (!bookingId || typeof bookingId !== 'string' || bookingId.trim().length < 8) {
+      return res.status(400).json({ error: 'Invalid or missing bookingId' });
     }
+
+    // Validate reason (optional, but if present, must be a string and not too long)
+    if (reason && (typeof reason !== 'string' || reason.length > 500)) {
+      return res.status(400).json({ error: 'Cancellation reason must be a string up to 500 characters' });
+    }
+
+    // Find the appointment
+    const appointment = await Appointment.findOne({ bookingId });
+
+    if (!appointment) {
+      return res.status(404).json({ error: 'Appointment not found' });
+    }
+
+    if (appointment.status === 'cancelled') {
+      return res.status(400).json({ error: 'Appointment is already cancelled' });
+    }
+
+    // Optionally, prevent cancelling past appointments
+    const now = new Date();
+    if (appointment.appointmentDate < now) {
+      return res.status(400).json({ error: 'Cannot cancel an appointment in the past' });
+    }
+
+    // Update the appointment status and notes
+    appointment.status = 'cancelled';
+    appointment.notes = reason ? `Cancelled: ${reason}` : 'Cancelled by user';
+    await appointment.save();
 
     res.json({
       message: 'Appointment cancelled successfully',
       appointment: {
-        ...cancelledAppointment.toObject(),
-        appointmentDate: formatDateForResponse(cancelledAppointment.appointmentDate)
+        ...appointment.toObject(),
+        appointmentDate: formatDateForResponse(appointment.appointmentDate)
       }
     });
 
@@ -328,4 +344,4 @@ export const cancelAppointment = async (req: Request, res: Response) => {
     console.error('Error cancelling appointment:', error);
     res.status(500).json({ error: 'Failed to cancel appointment' });
   }
-}; 
+};
