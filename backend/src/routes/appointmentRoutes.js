@@ -14,4 +14,9 @@ router.post('/create', appointmentController_1.createAppointment);
 router.get('/booking/:bookingId', appointmentController_1.getAppointmentByBookingId);
 // Get all appointments (for admin purposes)
 router.get('/all', appointmentController_1.getAllAppointments);
+// Update an existing appointment
+router.put('/update/:bookingId', appointmentController_1.updateAppointment);
+// Cancel an existing appointment
+router.put('/cancel/:bookingId', appointmentController_1.cancelAppointment);
+
 exports.default = router;
