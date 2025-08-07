@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   TextField,
   Button,
@@ -94,7 +94,7 @@ const AppointmentManagement: React.FC = () => {
     setAvailableSlots([]);
   };
 
-  const fetchSlotsForUpdate = async (date: string) => {
+  const fetchSlotsForUpdate = useCallback(async (date: string) => {
     if (!date) return;
     
     setLoadingSlots(true);
@@ -112,7 +112,7 @@ const AppointmentManagement: React.FC = () => {
     } finally {
       setLoadingSlots(false);
     }
-  };
+  }, [appointment]);
 
   const handleUpdateFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -174,7 +174,7 @@ const AppointmentManagement: React.FC = () => {
     if (updateForm.appointmentDate && updateDialogOpen) {
       fetchSlotsForUpdate(updateForm.appointmentDate);
     }
-  }, [updateForm.appointmentDate, updateDialogOpen]);
+  }, [updateForm.appointmentDate, updateDialogOpen, fetchSlotsForUpdate]);
 
   return (
     <Box sx={{ maxWidth: 600, mx: 'auto', mt: 4 }}>
